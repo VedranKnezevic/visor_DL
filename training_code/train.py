@@ -12,6 +12,7 @@ import time
 import datetime
 import matplotlib.pyplot as plt
 from sklearn.metrics import precision_recall_curve, PrecisionRecallDisplay
+import argparse
 
 
 class ConvModel(nn.Module):
@@ -161,9 +162,12 @@ def evaluate(testset, save_dir, exp_num):
 
 
 if __name__=="__main__":
-
+    parser = argparse.ArgumentParser(description="Train model and log the results")
+    parser.add_argument("data_dir", help="Path to directory with images and labels")
+    args = parser.parse_args()
+    
     model = ConvModel(16, 32, 64)
-    dataset = TWADataset("../data/labels.csv", "../data/images")
+    dataset = TWADataset(os.join.path(args.data_dir, "labels.csv"), os.join.path(args.data_dir, "images"))
 
     n = len(dataset)
     split = random_split(dataset, [0.5, 0.2, 0.3])
