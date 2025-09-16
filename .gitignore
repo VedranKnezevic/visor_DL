@@ -1,0 +1,4 @@
+data/
+pin.txt
+*.log
+*runs/
