@@ -1,4 +1,13 @@
-data/
+
+# Ignore Python cache and outputs
+**/__pycache__/
+**/*.pyc
+**/output.txt
+**/runs/
+**/*.log
+
+# Ignore any sensitive files
 pin.txt
-*.log
-*runs/
+
+# Ignore data folder
+data/
