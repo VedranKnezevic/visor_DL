@@ -170,6 +170,7 @@ def evaluate(model, testset, save_dir, exp_num):
                                 "ground_truth": ground_truth,
                                 "loss": losses
                                 })
+    loss_per_image = loss_per_image.sort_values('loss')
     pr_curve_numbers = pd.DataFrame({"precision": precision, 
                                      "recall": recall, 
                                      "thresholds": thresholds})
@@ -178,6 +179,7 @@ def evaluate(model, testset, save_dir, exp_num):
     plt.savefig(os.path.join(save_dir, f"exp{exp_num}_PR.png"), format="png")
 
     pr_curve_numbers.to_csv(os.path.join(save_dir, f"exp{exp_num}_PR_numbers.csv"),index=False)
+    loss_per_image.to_csv(os.path.join(save_dir, f"exp{exp_num}_loss_per_image.csv"),index=False)
 
 
 if __name__=="__main__":
