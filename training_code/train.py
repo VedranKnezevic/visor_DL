@@ -77,7 +77,7 @@ def train(model, train_dataloader, val_dataloader, save_dir,  exp_num, param_nit
           param_delta=1e-10, param_lambda=1e-2,):
     optimizer = torch.optim.SGD(model.parameters(), lr = param_delta, weight_decay=param_lambda)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=2, gamma=0.1)
-    criterion = torch.nn.BCELoss()
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     hiperparameter_string = f"{model}\nn_epoch: {param_niter}\noptimizer: {optimizer.__class__.__name__}\n" \
     + f"lr: {param_delta}\nweight_decay: {param_niter}\n"
@@ -97,9 +97,11 @@ def train(model, train_dataloader, val_dataloader, save_dir,  exp_num, param_nit
         train_loss = 0
         with tqdm(enumerate(train_dataloader), total=len(train_dataloader), unit="batch",
                   desc=f'Training (epoch={epoch}/{param_niter})', mininterval=1, miniters=1) as t:   
-            for i, (X, Y_) in t:
+            for i, (X, Y_, _) in t:
+                X = X.to(device)
+                Y_ = Y_.to(device)
                 Y = model(X)
-                loss = criterion(Y, Y_)
+                loss = F.binary_cross_entropy(Y, Y_)
                 train_loss += loss.item()
                 loss.backward()
                 optimizer.step()
@@ -109,10 +111,12 @@ def train(model, train_dataloader, val_dataloader, save_dir,  exp_num, param_nit
             scheduler.step()
             model.eval()
             with torch.no_grad():
-               for X, Y_ in val_dataloader:
-                  Y = model(X)
-                  loss = F.binary_cross_entropy(Y, Y_)
-                  val_loss = loss.item()
+                for X, Y_, _ in val_dataloader:
+                    X = X.to(device)
+                    Y_ = Y_.to(device)
+                    Y = model(X)
+                    loss = F.binary_cross_entropy(Y, Y_)
+                    val_loss = loss.item()
         
         train_loss /= len(train_dataloader)
         end = time.time()
@@ -126,31 +130,46 @@ def train(model, train_dataloader, val_dataloader, save_dir,  exp_num, param_nit
     
         results_table.to_csv(os.path.join(save_dir, "epoch_loss.csv"), index=False)
 
-        plt.plot(results_table.iloc[:, 0], results_table.iloc[:, 1], label="training loss")
-        plt.plot(results_table.iloc[:, 0], results_table.iloc[:, 2], label="validation loss")
+    plt.plot(results_table.iloc[:, 0], results_table.iloc[:, 1], label="training loss")
+    plt.plot(results_table.iloc[:, 0], results_table.iloc[:, 2], label="validation loss")
 
-        plt.grid()
-        plt.legend(loc="best")
-        plt.savefig(os.path.join(save_dir, f"exp{exp_num}_epoch_loss.png"), format="png")
+    plt.grid()
+    plt.legend(loc="best")
+    plt.savefig(os.path.join(save_dir, f"exp{exp_num}_epoch_loss.png"), format="png")
         
     torch.save(model.state_dict(), os.path.join(save_dir, f"exp{exp_num}_weights.pt"))
     
 
-def evaluate(testset, save_dir, exp_num):
+def evaluate(model, testset, save_dir, exp_num):
+    model.eval()
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    filenames = []
     ground_truth = []
     scores = []
-    pr_curve_numbers = pd.DataFrame([], columns=["precision", "recall", "thresholds"])
+    losses = []
+    # pr_curve_numbers = pd.DataFrame([], columns=["precision", "recall", "thresholds"])
+    # loss_per_image = pd.DataFrame([], columns=["filename", "score", "label", "loss"])
             
 
     with tqdm(range(len(testset)), total=len(testset), unit="img",) as t:
         for i in t:
-            image, label = testset[i]
-            image = image.unsqueeze(0)
+            image, label, filename = testset[i]
+            filenames.append(filename)
+            image = image.unsqueeze(0).to(device)
             ground_truth.append(label.item())
-            scores.append(model(image).item())
+            score = model(image)
+            scores.append()
+            loss = F.binary_cross_entropy(score, label.to(device))
+            losses.append(loss)
 
     precision, recall, thresholds = precision_recall_curve(ground_truth, scores)
     thresholds = np.hstack([np.array([0]), thresholds])
+    loss_per_image = pd.DataFrame({
+                                "filename": filenames,
+                                "score" : scores,
+                                "ground_truth": ground_truth,
+                                "loss": losses
+                                })
     pr_curve_numbers = pd.DataFrame({"precision": precision, 
                                      "recall": recall, 
                                      "thresholds": thresholds})
@@ -165,9 +184,12 @@ if __name__=="__main__":
     parser = argparse.ArgumentParser(description="Train model and log the results")
     parser.add_argument("data_dir", help="Path to directory with images and labels")
     args = parser.parse_args()
-    
+
+
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = ConvModel(16, 32, 64)
-    dataset = TWADataset(os.join.path(args.data_dir, "labels.csv"), os.join.path(args.data_dir, "images"))
+    model.to(device)
+    dataset = TWADataset(os.path.join(args.data_dir, "labels.csv"), os.path.join(args.data_dir, "images"))
 
     n = len(dataset)
     split = random_split(dataset, [0.5, 0.2, 0.3])
@@ -197,7 +219,7 @@ if __name__=="__main__":
                 f"val_images: {len(valset)}\nval_ratio: 1:{ratios[1]:.3f}\n" + \
                 f"test_images: {len(trainset)}\ntest_ratio: 1:{ratios[2]:.3f}\n")
 
-    evaluate(testset, save_dir, exp_num)
+    evaluate(model, testset, save_dir, exp_num)
 
     with open(os.path.join(save_dir, f"exp{exp_num}_info.txt"), "a") as f:
         f.write(f"end: {datetime.datetime.now()}\n")

@@ -20,7 +20,7 @@ class TWADataset(Dataset):
         image = torch.tensor(cv2.imread(img_path, cv2.IMREAD_GRAYSCALE), dtype=torch.float32)
         label = self.img_labels.iloc[idx, 1]
 
-        return image.unsqueeze(0), torch.tensor(label, dtype=torch.float)
+        return image.unsqueeze(0), torch.tensor(label, dtype=torch.float), self.img_labels.iloc[idx, 0]
     
 
 if __name__=="__main__":
