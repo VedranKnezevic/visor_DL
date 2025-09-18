@@ -158,7 +158,7 @@ def evaluate(model, testset, save_dir, exp_num):
             image = image.unsqueeze(0).to(device)
             ground_truth.append(label.item())
             score = model(image)
-            scores.append()
+            scores.append(score)
             loss = F.binary_cross_entropy(score, label.to(device))
             losses.append(loss)
 
