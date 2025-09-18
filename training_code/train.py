@@ -74,7 +74,7 @@ def initialize_experiment():
 
     
 def train(model, train_dataloader, val_dataloader, save_dir,  exp_num, param_niter=10000, 
-          param_delta=1e-10, param_lambda=1e-2,):
+          param_delta=1e-8, param_lambda=1e-2,):
     optimizer = torch.optim.SGD(model.parameters(), lr = param_delta, weight_decay=param_lambda)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=2, gamma=0.1)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -194,7 +194,7 @@ if __name__=="__main__":
     dataset = TWADataset(os.path.join(args.data_dir, "labels.csv"), os.path.join(args.data_dir, "images"))
 
     n = len(dataset)
-    split = random_split(dataset, [0.5, 0.2, 0.3])
+    split = random_split(dataset, [0.7, 0.15, 0.15])
     trainset = split[0]
     valset = split[1]
     testset = split[2]
@@ -207,7 +207,7 @@ if __name__=="__main__":
     with open(os.path.join(save_dir, f"exp{exp_num}_info.txt"), "a") as f:
         f.write(f"start: {datetime.datetime.now()}\n")
 
-    train(model, train_dataloader, val_dataloader, param_niter=4, save_dir=save_dir, exp_num=exp_num)
+    train(model, train_dataloader, val_dataloader, param_niter=20, save_dir=save_dir, exp_num=exp_num)
 
     ratios = []
     for set in [trainset, valset, testset]:
