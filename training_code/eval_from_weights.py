@@ -56,6 +56,7 @@ def evaluate(model, testset, save_dir, exp_num):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate model from weights")
     parser.add_argument("weights_path", help="path to the .pt file with model weights")
+    parser.add_argument("data_dir", help="Path to directory with images and labels")
     args = parser.parse_args()
 
     model = ConvModel(16, 32, 64)
