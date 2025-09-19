@@ -158,9 +158,9 @@ def evaluate(model, testset, save_dir, exp_num):
             image = image.unsqueeze(0).to(device)
             ground_truth.append(label.item())
             score = model(image)
-            scores.append(score)
+            scores.append(score.item())
             loss = F.binary_cross_entropy(score, label.to(device))
-            losses.append(loss)
+            losses.append(loss.item())
 
     precision, recall, thresholds = precision_recall_curve(ground_truth, scores)
     thresholds = np.hstack([np.array([0]), thresholds])
@@ -219,7 +219,7 @@ if __name__=="__main__":
     with open(os.path.join(save_dir, f"exp{exp_num}_info.txt"), "a") as f:
         f.write(f"train_images: {len(trainset)}\ntrain_ratio: 1:{ratios[0]:.3f}\n" + \
                 f"val_images: {len(valset)}\nval_ratio: 1:{ratios[1]:.3f}\n" + \
-                f"test_images: {len(trainset)}\ntest_ratio: 1:{ratios[2]:.3f}\n")
+                f"test_images: {len(testset)}\ntest_ratio: 1:{ratios[2]:.3f}\n")
 
     evaluate(model, testset, save_dir, exp_num)
 
