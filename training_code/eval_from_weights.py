@@ -59,7 +59,9 @@ if __name__ == "__main__":
     parser.add_argument("data_dir", help="Path to directory with images and labels")
     args = parser.parse_args()
 
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = ConvModel(16, 32, 64)
+    model.to(device)
     model.load_state_dict(torch.load(args.weights_path, weights_only=True))
     model.eval()
 
