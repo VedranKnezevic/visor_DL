@@ -189,7 +189,7 @@ if __name__=="__main__":
 
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = ConvModel(16, 32, 64)
+    model = ConvModel(64, 126, 256)
     model.to(device)
     dataset = TWADataset(os.path.join(args.data_dir, "labels.csv"), os.path.join(args.data_dir, "images"))
 
@@ -199,8 +199,8 @@ if __name__=="__main__":
     valset = split[1]
     testset = split[2]
 
-    train_dataloader = DataLoader(trainset, batch_size=50, shuffle=True)
-    val_dataloader = DataLoader(valset, batch_size=50, shuffle=False)
+    train_dataloader = DataLoader(trainset, batch_size=16, shuffle=True)
+    val_dataloader = DataLoader(valset, batch_size=16, shuffle=False)
     
     save_dir, exp_num = initialize_experiment()
 
