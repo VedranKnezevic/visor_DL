@@ -75,9 +75,6 @@ def train(model, train_dataloader, val_dataloader, save_dir,  exp_num, param_nit
                 X = X
                 Y_ = Y_
                 Y = model(X)
-                print(Y.device)
-                print(Y_.device)
-                exit()
                 loss = criterion(Y, Y_)
                 train_loss += loss.item()
                 loss.backward()
@@ -168,7 +165,7 @@ if __name__=="__main__":
     model = LogitsConvModel(16, 32, 64)
     model = model.to(device)
     if model.__class__ == LogitsConvModel:
-        criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([50]))
+        criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([50]), device=device)
     else:
         criterion = nn.BCELoss()
 
