@@ -177,6 +177,10 @@ if __name__=="__main__":
     train_dataloader = DataLoader(trainset, batch_size=16, shuffle=True)
     val_dataloader = DataLoader(valset, batch_size=16, shuffle=False)
     
+    x, y, _ = trainset[0]
+    print(x.device)
+    print(y.device)
+    exit()
     
     save_dir, exp_num = initialize_experiment()
 
