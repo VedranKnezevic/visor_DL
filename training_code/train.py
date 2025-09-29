@@ -13,37 +13,9 @@ import datetime
 import matplotlib.pyplot as plt
 from sklearn.metrics import precision_recall_curve, PrecisionRecallDisplay
 import argparse
+from models import ConvModel, LogitsConvModel
 
 
-class ConvModel(nn.Module):
-    def __init__(self, conv1_width, conv2_width, conv3_width):
-        super(ConvModel, self).__init__()
-        self.conv1 = nn.Conv2d(1, conv1_width, kernel_size=7, stride=2)
-        self.relu1 = nn.ReLU()
-        self.maxpool1 = nn.MaxPool2d(kernel_size=2, stride=2)
-        self.conv2 = nn.Conv2d(conv1_width, conv2_width, kernel_size=3, stride=2)
-        self.relu2 = nn.ReLU()
-        self.maxpool2 = nn.MaxPool2d(kernel_size=2, stride=2)
-        self.conv3 = nn.Conv2d(conv2_width, conv3_width, kernel_size=3)
-        self.relu3 = nn.ReLU()
-        self.maxpool3 = nn.MaxPool2d(kernel_size=2, stride=2)
-        self.fc = nn.Linear(conv3_width*28*55, 1)
-
-    def forward(self, x):
-        h = self.conv1(x)
-        h = self.relu1(h)
-        h = self.maxpool1(h)
-        h = self.conv2(h)
-        h = self.relu2(h)
-        h = self.maxpool2(h)
-        h = self.conv3(h)
-        h = self.relu3(h)
-        h = self.maxpool3(h)
-
-        h = h.view(h.shape[0], -1)
-        h = self.fc(h)
-        return torch.sigmoid(h).squeeze()
-    
 
 def find_highest_experiment(directory: str):
     """
@@ -74,15 +46,17 @@ def initialize_experiment():
 
     
 def train(model, train_dataloader, val_dataloader, save_dir,  exp_num, param_niter=10000, 
-          param_delta=1e-8, param_lambda=1e-2,):
+          param_delta=1e-8, param_lambda=1e-2, criterion=None):
     optimizer = torch.optim.SGD(model.parameters(), lr = param_delta, weight_decay=param_lambda)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=2, gamma=0.1)
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
     
     hiperparameter_string = f"{model}\nn_epoch: {param_niter}\noptimizer: {optimizer.__class__.__name__}\n" \
     + f"lr: {param_delta}\nweight_decay: {param_niter}\n"
     with open(os.path.join(save_dir, f"exp{exp_num}_info.txt"), "a") as f:
         f.write(hiperparameter_string)
+        if criterion.__class__ == nn.BCEWithLogitsLoss:
+            f.write(f"class weight: {criterion.pos_weight.item()}\n")
 
 
     results_table = pd.DataFrame([],
@@ -98,10 +72,10 @@ def train(model, train_dataloader, val_dataloader, save_dir,  exp_num, param_nit
         with tqdm(enumerate(train_dataloader), total=len(train_dataloader), unit="batch",
                   desc=f'Training (epoch={epoch}/{param_niter})', mininterval=1, miniters=1) as t:   
             for i, (X, Y_, _) in t:
-                X = X.to(device)
-                Y_ = Y_.to(device)
+                X = X
+                Y_ = Y_
                 Y = model(X)
-                loss = F.binary_cross_entropy(Y, Y_)
+                loss = criterion(Y, Y_)
                 train_loss += loss.item()
                 loss.backward()
                 optimizer.step()
@@ -112,10 +86,10 @@ def train(model, train_dataloader, val_dataloader, save_dir,  exp_num, param_nit
             model.eval()
             with torch.no_grad():
                 for X, Y_, _ in val_dataloader:
-                    X = X.to(device)
-                    Y_ = Y_.to(device)
+                    X = X
+                    Y_ = Y_
                     Y = model(X)
-                    loss = F.binary_cross_entropy(Y, Y_)
+                    loss = criterion(Y, Y_)
                     val_loss = loss.item()
         
         train_loss /= len(train_dataloader)
@@ -140,9 +114,8 @@ def train(model, train_dataloader, val_dataloader, save_dir,  exp_num, param_nit
     torch.save(model.state_dict(), os.path.join(save_dir, f"exp{exp_num}_weights.pt"))
     
 
-def evaluate(model, testset, save_dir, exp_num):
+def evaluate(model, testset, save_dir, exp_num, criterion):
     model.eval()
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     filenames = []
     ground_truth = []
     scores = []
@@ -155,11 +128,11 @@ def evaluate(model, testset, save_dir, exp_num):
         for i in t:
             image, label, filename = testset[i]
             filenames.append(filename)
-            image = image.unsqueeze(0).to(device)
+            image = image.unsqueeze(0)
             ground_truth.append(label.item())
             score = model(image)
             scores.append(score.item())
-            loss = F.binary_cross_entropy(score, label.to(device))
+            loss = criterion(score, label)
             losses.append(loss.item())
 
     precision, recall, thresholds = precision_recall_curve(ground_truth, scores)
@@ -189,12 +162,16 @@ if __name__=="__main__":
 
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = ConvModel(64, 126, 256)
+    model = LogitsConvModel(32, 32, 32)
     model.to(device)
-    dataset = TWADataset(os.path.join(args.data_dir, "labels.csv"), os.path.join(args.data_dir, "images"))
+    dataset = TWADataset(os.path.join(args.data_dir, "labels.csv"), os.path.join(args.data_dir, "images"), device)
+    if model.__class__ == LogitsConvModel:
+        criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([50]))
+    else:
+        criterion = nn.BCELoss()
 
     n = len(dataset)
-    split = random_split(dataset, [0.7, 0.15, 0.15])
+    split = random_split(dataset, [0.01, 0.01, 0.01, 0.97])
     trainset = split[0]
     valset = split[1]
     testset = split[2]
@@ -207,7 +184,7 @@ if __name__=="__main__":
     with open(os.path.join(save_dir, f"exp{exp_num}_info.txt"), "a") as f:
         f.write(f"start: {datetime.datetime.now()}\n")
 
-    train(model, train_dataloader, val_dataloader, param_niter=7, save_dir=save_dir, exp_num=exp_num)
+    train(model, train_dataloader, val_dataloader, param_niter=7, save_dir=save_dir, exp_num=exp_num, criterion=criterion)
 
     ratios = []
     for set in [trainset, valset, testset]:
@@ -221,7 +198,7 @@ if __name__=="__main__":
                 f"val_images: {len(valset)}\nval_ratio: 1:{ratios[1]:.3f}\n" + \
                 f"test_images: {len(testset)}\ntest_ratio: 1:{ratios[2]:.3f}\n")
 
-    evaluate(model, testset, save_dir, exp_num)
+    evaluate(model, testset, save_dir, exp_num, criterion)
 
     with open(os.path.join(save_dir, f"exp{exp_num}_info.txt"), "a") as f:
         f.write(f"end: {datetime.datetime.now()}\n")

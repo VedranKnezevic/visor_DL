@@ -8,9 +8,10 @@ import matplotlib.pyplot as plt
 
 
 class TWADataset(Dataset):
-    def __init__(self, annotations_file: str, img_dir: str):
+    def __init__(self, annotations_file: str, img_dir: str, device):
         self.img_labels = pd.read_csv(annotations_file)
         self.img_dir = img_dir
+        self.device = device
 
     def __len__(self):
         return len(self.img_labels)
@@ -20,7 +21,7 @@ class TWADataset(Dataset):
         image = torch.tensor(cv2.imread(img_path, cv2.IMREAD_GRAYSCALE), dtype=torch.float32)
         label = self.img_labels.iloc[idx, 1]
 
-        return image.unsqueeze(0), torch.tensor(label, dtype=torch.float), self.img_labels.iloc[idx, 0]
+        return image.to(self.device).unsqueeze(0), torch.tensor(label, dtype=torch.float, device=self.device), self.img_labels.iloc[idx, 0]
     
 
 if __name__=="__main__":

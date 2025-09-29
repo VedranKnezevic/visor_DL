@@ -31,8 +31,8 @@ def copy_images(big_dir: str, small_dir: str, dst_dir: str, scrap: set[str], pse
 
 
 def create_labels(dst_dir: str, scrap: set[str], pseudo_scrap: set[str]):
-    scrap_labels = pd.DataFrame({"filename": list(scrap), "scrap": np.zeros(len(scrap), dtype=np.int8)})
-    pseudo_scrap_labels = pd.DataFrame({"filename": list(pseudo_scrap), "scrap": np.ones(len(pseudo_scrap), dtype=np.int8)})
+    scrap_labels = pd.DataFrame({"filename": list(scrap), "scrap": np.ones(len(scrap), dtype=np.int8)})
+    pseudo_scrap_labels = pd.DataFrame({"filename": list(pseudo_scrap), "scrap": np.zeros(len(pseudo_scrap), dtype=np.int8)})
 
     labels = pd.concat([scrap_labels, pseudo_scrap_labels])
 

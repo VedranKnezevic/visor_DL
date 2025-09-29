@@ -13,7 +13,6 @@ from dataset import TWADataset
 
 def evaluate(model, testset, save_dir, exp_num):
     model.eval()
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     filenames = []
     ground_truth = []
     scores = []
@@ -26,11 +25,11 @@ def evaluate(model, testset, save_dir, exp_num):
         for i in t:
             image, label, filename = testset[i]
             filenames.append(filename)
-            image = image.unsqueeze(0).to(device)
+            image = image.unsqueeze(0)
             ground_truth.append(label.item())
             score = model(image)
             scores.append(score.item())
-            loss = F.binary_cross_entropy(score, label.to(device))
+            loss = F.binary_cross_entropy(score, label)
             losses.append(loss.item())
 
     precision, recall, thresholds = precision_recall_curve(ground_truth, scores)
@@ -66,6 +65,6 @@ if __name__ == "__main__":
     model.eval()
 
 
-    dataset = TWADataset(os.path.join(args.data_dir, "labels.csv"), os.path.join(args.data_dir, "images"))
+    dataset = TWADataset(os.path.join(args.data_dir, "labels.csv"), os.path.join(args.data_dir, "images"), device)
 
     evaluate(model, dataset, save_dir="runs/exp3", exp_num=3)
