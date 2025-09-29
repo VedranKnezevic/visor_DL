@@ -80,7 +80,7 @@ def train(model, train_dataloader, val_dataloader, save_dir,  exp_num, param_nit
                 loss.backward()
                 optimizer.step()
                 optimizer.zero_grad()
-                # t.set_postfix(loss=loss.item())
+                
 
             scheduler.step()
             model.eval()
@@ -164,18 +164,12 @@ if __name__=="__main__":
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = LogitsConvModel(32, 32, 32)
     model.to(device)
-    # dataset = TWADataset(os.path.join(args.data_dir, "labels.csv"), os.path.join(args.data_dir, "images"), device)
     if model.__class__ == LogitsConvModel:
         criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([50]))
     else:
         criterion = nn.BCELoss()
 
-    # n = len(dataset)
-    # split = random_split(dataset, [0.01, 0.01, 0.01, 0.97])
-    # trainset = split[0]
-    # valset = split[1]
-    # testset = split[2]
-
+    
     trainset = TWADataset(os.path.join(args.data_dir, "train", "labels.csv"), os.path.join(args.data_dir, "train", "images"), device)
     valset = TWADataset(os.path.join(args.data_dir, "val", "labels.csv"), os.path.join(args.data_dir, "val", "images"), device)
     testset = TWADataset(os.path.join(args.data_dir, "test", "labels.csv"), os.path.join(args.data_dir, "test", "images"), device)
