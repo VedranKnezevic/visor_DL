@@ -163,7 +163,7 @@ if __name__=="__main__":
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = LogitsConvModel(16, 32, 64)
-    model.to(device)
+    model = model.to(device)
     if model.__class__ == LogitsConvModel:
         criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([50]))
     else:
@@ -177,11 +177,6 @@ if __name__=="__main__":
     train_dataloader = DataLoader(trainset, batch_size=16, shuffle=True)
     val_dataloader = DataLoader(valset, batch_size=16, shuffle=False)
     
-    x, y, _ = trainset[0]
-    print(x.device)
-    print(y.device)
-    print(model.device)
-    exit()
     
     save_dir, exp_num = initialize_experiment()
 
