@@ -75,6 +75,9 @@ def train(model, train_dataloader, val_dataloader, save_dir,  exp_num, param_nit
                 X = X
                 Y_ = Y_
                 Y = model(X)
+                print(Y.device)
+                print(Y_.device)
+                exit()
                 loss = criterion(Y, Y_)
                 train_loss += loss.item()
                 loss.backward()
