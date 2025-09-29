@@ -164,20 +164,25 @@ if __name__=="__main__":
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = LogitsConvModel(32, 32, 32)
     model.to(device)
-    dataset = TWADataset(os.path.join(args.data_dir, "labels.csv"), os.path.join(args.data_dir, "images"), device)
+    # dataset = TWADataset(os.path.join(args.data_dir, "labels.csv"), os.path.join(args.data_dir, "images"), device)
     if model.__class__ == LogitsConvModel:
         criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([50]))
     else:
         criterion = nn.BCELoss()
 
-    n = len(dataset)
-    split = random_split(dataset, [0.01, 0.01, 0.01, 0.97])
-    trainset = split[0]
-    valset = split[1]
-    testset = split[2]
+    # n = len(dataset)
+    # split = random_split(dataset, [0.01, 0.01, 0.01, 0.97])
+    # trainset = split[0]
+    # valset = split[1]
+    # testset = split[2]
+
+    trainset = TWADataset(os.path.join(args.data_dir, "train", "labels.csv"), os.path.join(args.data_dir, "train", "images"), device)
+    valset = TWADataset(os.path.join(args.data_dir, "val", "labels.csv"), os.path.join(args.data_dir, "val", "images"), device)
+    testset = TWADataset(os.path.join(args.data_dir, "test", "labels.csv"), os.path.join(args.data_dir, "test", "images"), device)
 
     train_dataloader = DataLoader(trainset, batch_size=16, shuffle=True)
     val_dataloader = DataLoader(valset, batch_size=16, shuffle=False)
+    
     
     save_dir, exp_num = initialize_experiment()
 
@@ -186,17 +191,6 @@ if __name__=="__main__":
 
     train(model, train_dataloader, val_dataloader, param_niter=7, save_dir=save_dir, exp_num=exp_num, criterion=criterion)
 
-    ratios = []
-    for set in [trainset, valset, testset]:
-        pseudo_scrap = dataset.img_labels.iloc[set.indices, 1].sum()
-        scrap = (1- dataset.img_labels.iloc[trainset.indices, 1]).sum()
-        ratios.append(pseudo_scrap/scrap)
-
-
-    with open(os.path.join(save_dir, f"exp{exp_num}_info.txt"), "a") as f:
-        f.write(f"train_images: {len(trainset)}\ntrain_ratio: 1:{ratios[0]:.3f}\n" + \
-                f"val_images: {len(valset)}\nval_ratio: 1:{ratios[1]:.3f}\n" + \
-                f"test_images: {len(testset)}\ntest_ratio: 1:{ratios[2]:.3f}\n")
 
     evaluate(model, testset, save_dir, exp_num, criterion)
 
