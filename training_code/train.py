@@ -180,6 +180,7 @@ if __name__=="__main__":
     x, y, _ = trainset[0]
     print(x.device)
     print(y.device)
+    print(model.device)
     exit()
     
     save_dir, exp_num = initialize_experiment()
