@@ -139,6 +139,8 @@ def evaluate(model, trainset, valset, testset, save_dir, exp_num, criterion):
             ground_truth.append(label.item())
             score = model(image)
             scores.append(score.item())
+            label = label.unsqueeze(0)
+            score = score.unsqueeze(0)
             loss = criterion(score, label)
             losses.append(loss.item())
 
@@ -161,6 +163,8 @@ def evaluate(model, trainset, valset, testset, save_dir, exp_num, criterion):
             ground_truth.append(label.item())
             score = model(image)
             scores.append(score.item())
+            label = label.unsqueeze(0)
+            score = score.unsqueeze(0)
             loss = criterion(score, label)
             losses.append(loss.item())
 
@@ -174,6 +178,8 @@ def evaluate(model, trainset, valset, testset, save_dir, exp_num, criterion):
             ground_truth.append(label.item())
             score = model(image)
             scores.append(score.item())
+            label = label.unsqueeze(0)
+            score = score.unsqueeze(0)
             loss = criterion(score, label)
             losses.append(loss.item())
 
