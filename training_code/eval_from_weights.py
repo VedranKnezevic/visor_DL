@@ -35,6 +35,9 @@ def evaluate(model, trainset, valset, testset, save_dir, exp_num, criterion):
             ground_truth.append(label.item())
             score = model(image)
             scores.append(score.item())
+            print(score)
+            print(label)
+            exit()
             loss = criterion(score, label)
             losses.append(loss.item())
 
@@ -57,6 +60,8 @@ def evaluate(model, trainset, valset, testset, save_dir, exp_num, criterion):
             ground_truth.append(label.item())
             score = model(image)
             scores.append(score.item())
+            print(score)
+            print(label)
             loss = criterion(score, label)
             losses.append(loss.item())
 
