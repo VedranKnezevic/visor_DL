@@ -10,6 +10,10 @@ from tqdm import tqdm
 import argparse
 from train import ConvModel, LogitsConvModel
 from dataset import TWADataset
+from pathlib import Path
+
+BASE_DIR = Path(__file__).parent.resolve()
+RUNS_DIR = BASE_DIR / "runs"
 
 
 def evaluate(model, trainset, valset, testset, save_dir, exp_num):
@@ -104,4 +108,4 @@ if __name__ == "__main__":
     valset = TWADataset(os.path.join(args.data_dir, "val", "labels.csv"), os.path.join(args.data_dir, "val", "images"), device)
     testset = TWADataset(os.path.join(args.data_dir, "test", "labels.csv"), os.path.join(args.data_dir, "test", "images"), device)
 
-    evaluate(model, trainset, valset, testset, save_dir="runs/exp3", exp_num=5)
+    evaluate(model, trainset, valset, testset, save_dir=os.path.join(RUNS_DIR, "exp5"), exp_num=5)
