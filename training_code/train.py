@@ -179,6 +179,7 @@ if __name__=="__main__":
     
     
     save_dir, exp_num = initialize_experiment()
+    exit()
 
     with open(os.path.join(save_dir, f"exp{exp_num}_info.txt"), "a") as f:
         f.write(f"start: {datetime.datetime.now()}\n")
