@@ -14,6 +14,10 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import precision_recall_curve, PrecisionRecallDisplay
 import argparse
 from models import ConvModel, LogitsConvModel
+from pathlib import Path
+
+BASE_DIR = Path(__file__).parent.resolve()
+RUNS_DIR = BASE_DIR / "runs"
 
 
 
@@ -38,9 +42,11 @@ def initialize_experiment():
     if not os.path.exists("runs"):
         os.makedirs("runs", exist_ok=True)
     exp_num = find_highest_experiment("runs") + 1
+    print(exp_num)
 
-    save_dir = os.path.join("runs", f"exp{exp_num}")
+    save_dir = os.path.join(RUNS_DIR, f"exp{exp_num}")
     os.makedirs(save_dir)
+    
 
     return save_dir, exp_num
 
@@ -114,9 +120,10 @@ def train(model, train_dataloader, val_dataloader, save_dir,  exp_num, param_nit
     torch.save(model.state_dict(), os.path.join(save_dir, f"exp{exp_num}_weights.pt"))
     
 
-def evaluate(model, testset, save_dir, exp_num, criterion):
+def evaluate(model, trainset, valset, testset, save_dir, exp_num):
     model.eval()
     filenames = []
+    subset = []
     ground_truth = []
     scores = []
     losses = []
@@ -124,26 +131,21 @@ def evaluate(model, testset, save_dir, exp_num, criterion):
     # loss_per_image = pd.DataFrame([], columns=["filename", "score", "label", "loss"])
             
 
-    with tqdm(range(len(testset)), total=len(testset), unit="img",) as t:
+    with tqdm(range(len(testset)), total=len(testset), unit="img", desc="eval on test") as t:
         for i in t:
             image, label, filename = testset[i]
             filenames.append(filename)
+            subset.append("test")
             image = image.unsqueeze(0)
             ground_truth.append(label.item())
             score = model(image)
             scores.append(score.item())
-            loss = criterion(score, label)
+            loss = F.binary_cross_entropy(score, label)
             losses.append(loss.item())
+
 
     precision, recall, thresholds = precision_recall_curve(ground_truth, scores)
     thresholds = np.hstack([np.array([0]), thresholds])
-    loss_per_image = pd.DataFrame({
-                                "filename": filenames,
-                                "score" : scores,
-                                "ground_truth": ground_truth,
-                                "loss": losses
-                                })
-    loss_per_image = loss_per_image.sort_values('loss')
     pr_curve_numbers = pd.DataFrame({"precision": precision, 
                                      "recall": recall, 
                                      "thresholds": thresholds})
@@ -151,6 +153,39 @@ def evaluate(model, testset, save_dir, exp_num, criterion):
     PrecisionRecallDisplay(precision, recall).plot()
     plt.savefig(os.path.join(save_dir, f"exp{exp_num}_PR.png"), format="png")
 
+    with tqdm(range(len(trainset)), total=len(trainset), unit="img", desc="eval on train") as t:
+        for i in t:
+            image, label, filename = testset[i]
+            filenames.append(filename)
+            subset.append("train")
+            image = image.unsqueeze(0)
+            ground_truth.append(label.item())
+            score = model(image)
+            scores.append(score.item())
+            loss = F.binary_cross_entropy(score, label)
+            losses.append(loss.item())
+
+
+    with tqdm(range(len(valset)), total=len(valset), unit="img", desc="eval on val") as t:
+        for i in t:
+            image, label, filename = testset[i]
+            filenames.append(filename)
+            subset.append("val")
+            image = image.unsqueeze(0)
+            ground_truth.append(label.item())
+            score = model(image)
+            scores.append(score.item())
+            loss = F.binary_cross_entropy(score, label)
+            losses.append(loss.item())
+
+
+    loss_per_image = pd.DataFrame({
+                                "filename": filenames,
+                                "score" : scores,
+                                "ground_truth": ground_truth,
+                                "loss": losses
+                                })
+    loss_per_image = loss_per_image.sort_values('loss')
     pr_curve_numbers.to_csv(os.path.join(save_dir, f"exp{exp_num}_PR_numbers.csv"),index=False)
     loss_per_image.to_csv(os.path.join(save_dir, f"exp{exp_num}_loss_per_image.csv"),index=False)
 
@@ -179,7 +214,7 @@ if __name__=="__main__":
     
     
     save_dir, exp_num = initialize_experiment()
-    exit()
+    
 
     with open(os.path.join(save_dir, f"exp{exp_num}_info.txt"), "a") as f:
         f.write(f"start: {datetime.datetime.now()}\n")
@@ -187,7 +222,7 @@ if __name__=="__main__":
     train(model, train_dataloader, val_dataloader, param_niter=7, save_dir=save_dir, exp_num=exp_num, criterion=criterion)
 
 
-    evaluate(model, testset, save_dir, exp_num, criterion)
+    evaluate(model, trainset, valset, testset, save_dir, exp_num, criterion)
 
     with open(os.path.join(save_dir, f"exp{exp_num}_info.txt"), "a") as f:
         f.write(f"end: {datetime.datetime.now()}\n")

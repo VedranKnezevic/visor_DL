@@ -1,4 +1,5 @@
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 import os
 import pandas as pd
@@ -7,13 +8,14 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import precision_recall_curve, PrecisionRecallDisplay
 from tqdm import tqdm
 import argparse
-from train import ConvModel
+from train import ConvModel, LogitsConvModel
 from dataset import TWADataset
 
 
-def evaluate(model, testset, save_dir, exp_num):
+def evaluate(model, trainset, valset, testset, save_dir, exp_num):
     model.eval()
     filenames = []
+    subset = []
     ground_truth = []
     scores = []
     losses = []
@@ -21,10 +23,11 @@ def evaluate(model, testset, save_dir, exp_num):
     # loss_per_image = pd.DataFrame([], columns=["filename", "score", "label", "loss"])
             
 
-    with tqdm(range(len(testset)), total=len(testset), unit="img",) as t:
+    with tqdm(range(len(testset)), total=len(testset), unit="img", desc="eval on test") as t:
         for i in t:
             image, label, filename = testset[i]
             filenames.append(filename)
+            subset.append("test")
             image = image.unsqueeze(0)
             ground_truth.append(label.item())
             score = model(image)
@@ -32,8 +35,42 @@ def evaluate(model, testset, save_dir, exp_num):
             loss = F.binary_cross_entropy(score, label)
             losses.append(loss.item())
 
+
     precision, recall, thresholds = precision_recall_curve(ground_truth, scores)
     thresholds = np.hstack([np.array([0]), thresholds])
+    pr_curve_numbers = pd.DataFrame({"precision": precision, 
+                                     "recall": recall, 
+                                     "thresholds": thresholds})
+    
+    PrecisionRecallDisplay(precision, recall).plot()
+    plt.savefig(os.path.join(save_dir, f"exp{exp_num}_PR.png"), format="png")
+
+    with tqdm(range(len(trainset)), total=len(trainset), unit="img", desc="eval on train") as t:
+        for i in t:
+            image, label, filename = testset[i]
+            filenames.append(filename)
+            subset.append("train")
+            image = image.unsqueeze(0)
+            ground_truth.append(label.item())
+            score = model(image)
+            scores.append(score.item())
+            loss = F.binary_cross_entropy(score, label)
+            losses.append(loss.item())
+
+
+    with tqdm(range(len(valset)), total=len(valset), unit="img", desc="eval on val") as t:
+        for i in t:
+            image, label, filename = testset[i]
+            filenames.append(filename)
+            subset.append("val")
+            image = image.unsqueeze(0)
+            ground_truth.append(label.item())
+            score = model(image)
+            scores.append(score.item())
+            loss = F.binary_cross_entropy(score, label)
+            losses.append(loss.item())
+
+
     loss_per_image = pd.DataFrame({
                                 "filename": filenames,
                                 "score" : scores,
@@ -41,12 +78,7 @@ def evaluate(model, testset, save_dir, exp_num):
                                 "loss": losses
                                 })
     loss_per_image = loss_per_image.sort_values('loss')
-    pr_curve_numbers = pd.DataFrame({"precision": precision, 
-                                     "recall": recall, 
-                                     "thresholds": thresholds})
     
-    PrecisionRecallDisplay(precision, recall).plot()
-    plt.savefig(os.path.join(save_dir, f"exp{exp_num}_PR.png"), format="png")
 
     pr_curve_numbers.to_csv(os.path.join(save_dir, f"exp{exp_num}_PR_numbers.csv"),index=False)
     loss_per_image.to_csv(os.path.join(save_dir, f"exp{exp_num}_loss_per_image.csv"),index=False)
@@ -59,12 +91,17 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = ConvModel(16, 32, 64)
+    model = LogitsConvModel(16, 32, 64)
     model.to(device)
+    if model.__class__ == LogitsConvModel:
+        criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([50], device=device))
+    else:
+        criterion = nn.BCELoss()
     model.load_state_dict(torch.load(args.weights_path, weights_only=True))
     model.eval()
 
+    trainset = TWADataset(os.path.join(args.data_dir, "train", "labels.csv"), os.path.join(args.data_dir, "train", "images"), device)
+    valset = TWADataset(os.path.join(args.data_dir, "val", "labels.csv"), os.path.join(args.data_dir, "val", "images"), device)
+    testset = TWADataset(os.path.join(args.data_dir, "test", "labels.csv"), os.path.join(args.data_dir, "test", "images"), device)
 
-    dataset = TWADataset(os.path.join(args.data_dir, "labels.csv"), os.path.join(args.data_dir, "images"), device)
-
-    evaluate(model, dataset, save_dir="runs/exp3", exp_num=3)
+    evaluate(model, trainset, valset, testset, save_dir="runs/exp3", exp_num=3)
