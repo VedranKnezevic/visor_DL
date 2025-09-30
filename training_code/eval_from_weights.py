@@ -82,6 +82,7 @@ def evaluate(model, trainset, valset, testset, save_dir, exp_num, criterion):
 
     loss_per_image = pd.DataFrame({
                                 "filename": filenames,
+                                "subset": subset,
                                 "score" : scores,
                                 "ground_truth": ground_truth,
                                 "loss": losses
