@@ -120,7 +120,7 @@ def train(model, train_dataloader, val_dataloader, save_dir,  exp_num, param_nit
     torch.save(model.state_dict(), os.path.join(save_dir, f"exp{exp_num}_weights.pt"))
     
 
-def evaluate(model, trainset, valset, testset, save_dir, exp_num):
+def evaluate(model, trainset, valset, testset, save_dir, exp_num, criterion):
     model.eval()
     filenames = []
     subset = []
@@ -130,7 +130,6 @@ def evaluate(model, trainset, valset, testset, save_dir, exp_num):
     # pr_curve_numbers = pd.DataFrame([], columns=["precision", "recall", "thresholds"])
     # loss_per_image = pd.DataFrame([], columns=["filename", "score", "label", "loss"])
             
-
     with tqdm(range(len(testset)), total=len(testset), unit="img", desc="eval on test") as t:
         for i in t:
             image, label, filename = testset[i]
@@ -140,7 +139,7 @@ def evaluate(model, trainset, valset, testset, save_dir, exp_num):
             ground_truth.append(label.item())
             score = model(image)
             scores.append(score.item())
-            loss = F.binary_cross_entropy(score, label)
+            loss = criterion(score, label)
             losses.append(loss.item())
 
 
@@ -162,7 +161,7 @@ def evaluate(model, trainset, valset, testset, save_dir, exp_num):
             ground_truth.append(label.item())
             score = model(image)
             scores.append(score.item())
-            loss = F.binary_cross_entropy(score, label)
+            loss = criterion(score, label)
             losses.append(loss.item())
 
 
@@ -175,7 +174,7 @@ def evaluate(model, trainset, valset, testset, save_dir, exp_num):
             ground_truth.append(label.item())
             score = model(image)
             scores.append(score.item())
-            loss = F.binary_cross_entropy(score, label)
+            loss = criterion(score, label)
             losses.append(loss.item())
 
 

@@ -16,7 +16,7 @@ BASE_DIR = Path(__file__).parent.resolve()
 RUNS_DIR = BASE_DIR / "runs"
 
 
-def evaluate(model, trainset, valset, testset, save_dir, exp_num):
+def evaluate(model, trainset, valset, testset, save_dir, exp_num, criterion):
     model.eval()
     filenames = []
     subset = []
@@ -26,7 +26,6 @@ def evaluate(model, trainset, valset, testset, save_dir, exp_num):
     # pr_curve_numbers = pd.DataFrame([], columns=["precision", "recall", "thresholds"])
     # loss_per_image = pd.DataFrame([], columns=["filename", "score", "label", "loss"])
             
-
     with tqdm(range(len(testset)), total=len(testset), unit="img", desc="eval on test") as t:
         for i in t:
             image, label, filename = testset[i]
@@ -36,7 +35,7 @@ def evaluate(model, trainset, valset, testset, save_dir, exp_num):
             ground_truth.append(label.item())
             score = model(image)
             scores.append(score.item())
-            loss = F.binary_cross_entropy(score, label)
+            loss = criterion(score, label)
             losses.append(loss.item())
 
 
@@ -58,7 +57,7 @@ def evaluate(model, trainset, valset, testset, save_dir, exp_num):
             ground_truth.append(label.item())
             score = model(image)
             scores.append(score.item())
-            loss = F.binary_cross_entropy(score, label)
+            loss = criterion(score, label)
             losses.append(loss.item())
 
 
@@ -71,7 +70,7 @@ def evaluate(model, trainset, valset, testset, save_dir, exp_num):
             ground_truth.append(label.item())
             score = model(image)
             scores.append(score.item())
-            loss = F.binary_cross_entropy(score, label)
+            loss = criterion(score, label)
             losses.append(loss.item())
 
 
@@ -82,8 +81,6 @@ def evaluate(model, trainset, valset, testset, save_dir, exp_num):
                                 "loss": losses
                                 })
     loss_per_image = loss_per_image.sort_values('loss')
-    
-
     pr_curve_numbers.to_csv(os.path.join(save_dir, f"exp{exp_num}_PR_numbers.csv"),index=False)
     loss_per_image.to_csv(os.path.join(save_dir, f"exp{exp_num}_loss_per_image.csv"),index=False)
 
@@ -108,4 +105,4 @@ if __name__ == "__main__":
     valset = TWADataset(os.path.join(args.data_dir, "val", "labels.csv"), os.path.join(args.data_dir, "val", "images"), device)
     testset = TWADataset(os.path.join(args.data_dir, "test", "labels.csv"), os.path.join(args.data_dir, "test", "images"), device)
 
-    evaluate(model, trainset, valset, testset, save_dir=os.path.join(RUNS_DIR, "exp5"), exp_num=5)
+    evaluate(model, trainset, valset, testset, save_dir=os.path.join(RUNS_DIR, "exp5"), exp_num=5, criterion=criterion)
