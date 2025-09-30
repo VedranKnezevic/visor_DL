@@ -42,7 +42,6 @@ def initialize_experiment():
     if not os.path.exists(RUNS_DIR):
         os.makedirs(RUNS_DIR, exist_ok=True)
     exp_num = find_highest_experiment(RUNS_DIR) + 1
-    print(exp_num)
 
     save_dir = os.path.join(RUNS_DIR, f"exp{exp_num}")
     os.makedirs(save_dir)
