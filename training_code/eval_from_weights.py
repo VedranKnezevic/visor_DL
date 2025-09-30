@@ -104,4 +104,4 @@ if __name__ == "__main__":
     valset = TWADataset(os.path.join(args.data_dir, "val", "labels.csv"), os.path.join(args.data_dir, "val", "images"), device)
     testset = TWADataset(os.path.join(args.data_dir, "test", "labels.csv"), os.path.join(args.data_dir, "test", "images"), device)
 
-    evaluate(model, trainset, valset, testset, save_dir="runs/exp3", exp_num=3)
+    evaluate(model, trainset, valset, testset, save_dir="runs/exp3", exp_num=5)
