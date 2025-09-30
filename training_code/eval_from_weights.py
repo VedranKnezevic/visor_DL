@@ -93,7 +93,7 @@ if __name__ == "__main__":
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = LogitsConvModel(16, 32, 64)
-    model.to(device)
+    model = model.to(device)
     if model.__class__ == LogitsConvModel:
         criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([50], device=device))
     else:
