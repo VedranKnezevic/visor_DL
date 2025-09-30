@@ -186,6 +186,7 @@ def evaluate(model, trainset, valset, testset, save_dir, exp_num, criterion):
 
     loss_per_image = pd.DataFrame({
                                 "filename": filenames,
+                                "subset": subset,
                                 "score" : scores,
                                 "ground_truth": ground_truth,
                                 "loss": losses
@@ -202,7 +203,7 @@ if __name__=="__main__":
 
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = LogitsConvModel(16, 32, 64)
+    model = LogitsConvModel(32, 32, 64)
     model = model.to(device)
     if model.__class__ == LogitsConvModel:
         criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([50], device=device))
@@ -214,8 +215,8 @@ if __name__=="__main__":
     valset = TWADataset(os.path.join(args.data_dir, "val", "labels.csv"), os.path.join(args.data_dir, "val", "images"), device)
     testset = TWADataset(os.path.join(args.data_dir, "test", "labels.csv"), os.path.join(args.data_dir, "test", "images"), device)
 
-    train_dataloader = DataLoader(trainset, batch_size=16, shuffle=True)
-    val_dataloader = DataLoader(valset, batch_size=16, shuffle=False)
+    train_dataloader = DataLoader(trainset, batch_size=32, shuffle=True)
+    val_dataloader = DataLoader(valset, batch_size=32, shuffle=False)
     
     
     save_dir, exp_num = initialize_experiment()
