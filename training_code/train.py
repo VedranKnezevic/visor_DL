@@ -156,7 +156,7 @@ def evaluate(model, trainset, valset, testset, save_dir, exp_num, criterion):
 
     with tqdm(range(len(trainset)), total=len(trainset), unit="img", desc="eval on train") as t:
         for i in t:
-            image, label, filename = testset[i]
+            image, label, filename = trainset[i]
             filenames.append(filename)
             subset.append("train")
             image = image.unsqueeze(0)
@@ -171,7 +171,7 @@ def evaluate(model, trainset, valset, testset, save_dir, exp_num, criterion):
 
     with tqdm(range(len(valset)), total=len(valset), unit="img", desc="eval on val") as t:
         for i in t:
-            image, label, filename = testset[i]
+            image, label, filename = valset[i]
             filenames.append(filename)
             subset.append("val")
             image = image.unsqueeze(0)
