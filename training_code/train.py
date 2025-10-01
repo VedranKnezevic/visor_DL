@@ -11,14 +11,13 @@ import numpy as np
 import time
 import datetime
 import matplotlib.pyplot as plt
-from sklearn.metrics import precision_recall_curve, PrecisionRecallDisplay
+import eval
 import argparse
 from models import ConvModel, LogitsConvModel
 from pathlib import Path
 
 BASE_DIR = Path(__file__).parent.resolve()
 RUNS_DIR = BASE_DIR / "runs"
-
 
 
 def find_highest_experiment(directory: str):
@@ -57,7 +56,7 @@ def train(model, train_dataloader, val_dataloader, save_dir,  exp_num, param_nit
     
     
     hiperparameter_string = f"{model}\nn_epoch: {param_niter}\noptimizer: {optimizer.__class__.__name__}\n" \
-    + f"lr: {param_delta}\nweight_decay: {param_niter}\n"
+    + f"lr: {param_delta}\nweight_decay: {param_lambda}\n"
     with open(os.path.join(save_dir, f"exp{exp_num}_info.txt"), "a") as f:
         f.write(hiperparameter_string)
         if criterion.__class__ == nn.BCEWithLogitsLoss:
@@ -119,82 +118,6 @@ def train(model, train_dataloader, val_dataloader, save_dir,  exp_num, param_nit
     torch.save(model.state_dict(), os.path.join(save_dir, f"exp{exp_num}_weights.pt"))
     
 
-def evaluate(model, trainset, valset, testset, save_dir, exp_num, criterion):
-    model.eval()
-    filenames = []
-    subset = []
-    ground_truth = []
-    scores = []
-    losses = []
-    # pr_curve_numbers = pd.DataFrame([], columns=["precision", "recall", "thresholds"])
-    # loss_per_image = pd.DataFrame([], columns=["filename", "score", "label", "loss"])
-            
-    with tqdm(range(len(testset)), total=len(testset), unit="img", desc="eval on test") as t:
-        for i in t:
-            image, label, filename = testset[i]
-            filenames.append(filename)
-            subset.append("test")
-            image = image.unsqueeze(0)
-            ground_truth.append(label.item())
-            score = model(image)
-            scores.append(score.item())
-            label = label.unsqueeze(0)
-            score = score.unsqueeze(0)
-            loss = criterion(score, label)
-            losses.append(loss.item())
-
-
-    precision, recall, thresholds = precision_recall_curve(ground_truth, scores)
-    thresholds = np.hstack([np.array([0]), thresholds])
-    pr_curve_numbers = pd.DataFrame({"precision": precision, 
-                                     "recall": recall, 
-                                     "thresholds": thresholds})
-    
-    PrecisionRecallDisplay(precision, recall).plot()
-    plt.savefig(os.path.join(save_dir, f"exp{exp_num}_PR.png"), format="png")
-
-    with tqdm(range(len(trainset)), total=len(trainset), unit="img", desc="eval on train") as t:
-        for i in t:
-            image, label, filename = trainset[i]
-            filenames.append(filename)
-            subset.append("train")
-            image = image.unsqueeze(0)
-            ground_truth.append(label.item())
-            score = model(image)
-            scores.append(score.item())
-            label = label.unsqueeze(0)
-            score = score.unsqueeze(0)
-            loss = criterion(score, label)
-            losses.append(loss.item())
-
-
-    with tqdm(range(len(valset)), total=len(valset), unit="img", desc="eval on val") as t:
-        for i in t:
-            image, label, filename = valset[i]
-            filenames.append(filename)
-            subset.append("val")
-            image = image.unsqueeze(0)
-            ground_truth.append(label.item())
-            score = model(image)
-            scores.append(score.item())
-            label = label.unsqueeze(0)
-            score = score.unsqueeze(0)
-            loss = criterion(score, label)
-            losses.append(loss.item())
-
-
-    loss_per_image = pd.DataFrame({
-                                "filename": filenames,
-                                "subset": subset,
-                                "score" : scores,
-                                "ground_truth": ground_truth,
-                                "loss": losses
-                                })
-    loss_per_image = loss_per_image.sort_values('loss')
-    pr_curve_numbers.to_csv(os.path.join(save_dir, f"exp{exp_num}_PR_numbers.csv"),index=False)
-    loss_per_image.to_csv(os.path.join(save_dir, f"exp{exp_num}_loss_per_image.csv"),index=False)
-
-
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description="Train model and log the results")
     parser.add_argument("data_dir", help="Path to directory with images and labels")
@@ -202,10 +125,10 @@ if __name__=="__main__":
 
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = LogitsConvModel(32, 32, 64)
+    model = LogitsConvModel(16, 32, 64)
     model = model.to(device)
     if model.__class__ == LogitsConvModel:
-        criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([50], device=device))
+        criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([100], device=device))
     else:
         criterion = nn.BCELoss()
 
@@ -214,8 +137,8 @@ if __name__=="__main__":
     valset = TWADataset(os.path.join(args.data_dir, "val", "labels.csv"), os.path.join(args.data_dir, "val", "images"), device)
     testset = TWADataset(os.path.join(args.data_dir, "test", "labels.csv"), os.path.join(args.data_dir, "test", "images"), device)
 
-    train_dataloader = DataLoader(trainset, batch_size=12, shuffle=True)
-    val_dataloader = DataLoader(valset, batch_size=12, shuffle=False)
+    train_dataloader = DataLoader(trainset, batch_size=16, shuffle=True)
+    val_dataloader = DataLoader(valset, batch_size=16, shuffle=False)
     
     
     save_dir, exp_num = initialize_experiment()
@@ -227,7 +150,7 @@ if __name__=="__main__":
     train(model, train_dataloader, val_dataloader, param_niter=7, save_dir=save_dir, exp_num=exp_num, criterion=criterion)
 
 
-    evaluate(model, trainset, valset, testset, save_dir, exp_num, criterion)
+    eval.evaluate(model, trainset, valset, save_dir, exp_num, criterion)
 
     with open(os.path.join(save_dir, f"exp{exp_num}_info.txt"), "a") as f:
         f.write(f"end: {datetime.datetime.now()}\n")
