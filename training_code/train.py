@@ -50,7 +50,7 @@ def initialize_experiment():
 
     
 def train(model, train_dataloader, val_dataloader, save_dir,  exp_num, param_niter=10000, 
-          param_delta=1e-8, param_lambda=1e-2, criterion=None):
+          param_delta=1e-10, param_lambda=1e-2, criterion=None):
     optimizer = torch.optim.SGD(model.parameters(), lr = param_delta, weight_decay=param_lambda)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=2, gamma=0.1)
     
@@ -69,6 +69,7 @@ def train(model, train_dataloader, val_dataloader, save_dir,  exp_num, param_nit
                 "val_loss",
                 "duration" 
                 ])
+    best_val_loss = np.inf
     for epoch in range(1, param_niter+1):
         start = time.time()
         model.train()
@@ -96,6 +97,9 @@ def train(model, train_dataloader, val_dataloader, save_dir,  exp_num, param_nit
                     loss = criterion(Y, Y_)
                     val_loss = loss.item()
         
+        if val_loss <= best_val_loss:
+            torch.save(model.state_dict(), os.path.join(save_dir, f"exp{exp_num}_best.pt"))
+
         train_loss /= len(train_dataloader)
         end = time.time()
         duration = end - start
