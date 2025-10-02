@@ -9,7 +9,7 @@ from sklearn.metrics import precision_recall_curve, PrecisionRecallDisplay
 from sklearn.metrics import recall_score, precision_score
 from tqdm import tqdm
 import argparse
-from train import ConvModel, LogitsConvModel
+from models import LogitsConvModel
 from dataset import TWADataset
 from pathlib import Path
 
