@@ -141,8 +141,8 @@ if __name__=="__main__":
     valset = TWADataset(os.path.join(args.data_dir, "val", "labels.csv"), os.path.join(args.data_dir, "val", "images"), device)
     testset = TWADataset(os.path.join(args.data_dir, "test", "labels.csv"), os.path.join(args.data_dir, "test", "images"), device)
 
-    train_dataloader = DataLoader(trainset, batch_size=6, shuffle=True)
-    val_dataloader = DataLoader(valset, batch_size=6, shuffle=False)
+    train_dataloader = DataLoader(trainset, batch_size=10, shuffle=True)
+    val_dataloader = DataLoader(valset, batch_size=10, shuffle=False)
     
     
     save_dir, exp_num = initialize_experiment()
