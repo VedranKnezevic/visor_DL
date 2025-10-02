@@ -76,8 +76,8 @@ def evaluate(model, trainset, valset, save_dir, exp_num, criterion):
                                      "recall_neg": recall_neg, 
                                      "thresholds": thresholds})
     
-    PrecisionRecallDisplay(precision, recall_pos).plot()
-    plt.savefig(os.path.join(save_dir, f"exp{exp_num}_PR.png"), format="png")
+    # PrecisionRecallDisplay(precision, recall_pos).plot()
+    # plt.savefig(os.path.join(save_dir, f"exp{exp_num}_PR.png"), format="png")
     plot_pos_vs_neg_recall(recall_pos, recall_neg)
     plt.savefig(os.path.join(save_dir, f"exp{exp_num}_recalls.png"), format="png")
 
@@ -114,9 +114,7 @@ if __name__ == "__main__":
     parser.add_argument("save_dir", help="Directory to save the results to")
     args = parser.parse_args()
     exp_num = int(args.save_dir[-1])
-    print(args.save_dir)
-    print(exp_num)
-    exit()
+
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = LogitsConvModel(16, 32, 64)
