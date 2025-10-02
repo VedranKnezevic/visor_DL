@@ -69,7 +69,7 @@ def evaluate(model, trainset, valset, save_dir, exp_num, criterion):
             losses.append(loss.item())
 
     thresholds = np.linspace(0, 1, 1001)
-    precision, recall_pos, recall_neg = recalls_at_thresholds(ground_truth, scores, thresholds)
+    precision, recall_pos, recall_neg = recalls_at_thresholds(np.array(ground_truth), np.array(scores), thresholds)
     
     pr_curve_numbers = pd.DataFrame({"precision": precision, 
                                      "recall_pos": recall_pos,
