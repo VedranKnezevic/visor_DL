@@ -111,7 +111,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate model from weights")
     parser.add_argument("weights_path", help="path to the .pt file with model weights")
     parser.add_argument("data_dir", help="Path to directory with images and labels")
+    parser.add_argument("save_dir", help="Directory to save the results to")
     args = parser.parse_args()
+    exp_num = int(args.save_dir[-1])
+    print(args.save_dir)
+    print(exp_num)
+    exit()
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = LogitsConvModel(16, 32, 64)
@@ -127,4 +132,4 @@ if __name__ == "__main__":
     valset = TWADataset(os.path.join(args.data_dir, "val", "labels.csv"), os.path.join(args.data_dir, "val", "images"), device)
     testset = TWADataset(os.path.join(args.data_dir, "test", "labels.csv"), os.path.join(args.data_dir, "test", "images"), device)
 
-    evaluate(model, trainset, valset, save_dir=os.path.join(RUNS_DIR, "exp5"), exp_num=5, criterion=criterion)
+    evaluate(model, trainset, valset, args.save_dir, exp_num, criterion)
