@@ -51,7 +51,7 @@ def initialize_experiment():
     
 def train(model, train_dataloader, val_dataloader, save_dir,  exp_num, param_niter=10000, 
           param_delta=1e-10, param_lambda=1, criterion=None):
-    optimizer = torch.optim.adam(model.parameters(), lr = param_delta, weight_decay=param_lambda)
+    optimizer = torch.optim.Adam(model.parameters(), lr = param_delta, weight_decay=param_lambda)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
     
     
