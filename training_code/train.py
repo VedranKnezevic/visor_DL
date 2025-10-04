@@ -50,9 +50,9 @@ def initialize_experiment():
 
     
 def train(model, train_dataloader, val_dataloader, save_dir,  exp_num, param_niter=10000, 
-          param_delta=1e-10, param_lambda=1e-2, criterion=None):
-    optimizer = torch.optim.SGD(model.parameters(), lr = param_delta, weight_decay=param_lambda)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=2, gamma=0.1)
+          param_delta=1e-10, param_lambda=1, criterion=None):
+    optimizer = torch.optim.adam(model.parameters(), lr = param_delta, weight_decay=param_lambda)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
     
     
     hiperparameter_string = f"{model}\nn_epoch: {param_niter}\noptimizer: {optimizer.__class__.__name__}\n" \
@@ -129,7 +129,7 @@ if __name__=="__main__":
 
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = LogitsConvModel(32, 64, 128)
+    model = LogitsConvModel(64, 128, 128)
     model = model.to(device)
     if model.__class__ == LogitsConvModel:
         criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([50], device=device))
@@ -151,7 +151,7 @@ if __name__=="__main__":
     with open(os.path.join(save_dir, f"exp{exp_num}_info.txt"), "a") as f:
         f.write(f"start: {datetime.datetime.now()}\n")
 
-    train(model, train_dataloader, val_dataloader, param_niter=7, save_dir=save_dir, exp_num=exp_num, criterion=criterion)
+    train(model, train_dataloader, val_dataloader, param_niter=20, save_dir=save_dir, exp_num=exp_num, criterion=criterion)
 
 
     eval.evaluate(model, trainset, valset, save_dir, exp_num, criterion)
