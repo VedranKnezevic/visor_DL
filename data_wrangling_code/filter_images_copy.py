@@ -2,7 +2,6 @@ import os
 import shutil
 import argparse
 import logging
-from tqdm import tqdm
 
 # --- Supported image extensions ---
 IMAGE_EXTENSIONS = (".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff", ".webp")
