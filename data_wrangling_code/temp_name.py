@@ -20,7 +20,7 @@ if __name__ == "__main__":
     
     multi_match = []
     no_match = []
-    for i, row in tqdm(labels.iterrows()):
+    for i, row in tqdm(labels.iterrows(), total=labels.shape[0]):
         
         matches = list(root.rglob(row.iloc[0]))
         if len(matches) == 1:
