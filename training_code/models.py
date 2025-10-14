@@ -83,7 +83,7 @@ class DeeperConvModel(nn.Module):
         self.fc = nn.Linear(conv4_width*13*7, 1)
 
     def forward(self, x):
-        h = self.conv1(h)
+        h = self.conv1(x)
         h = self.relu1(h)
         h = self.maxpool1(h)
         h = self.conv2(h)
