@@ -65,10 +65,9 @@ class LogitsConvModel(nn.Module):
         return h.squeeze()
     
 
-class ResizeConvModel(nn.Module):
+class DeeperConvModel(nn.Module):
     def __init__(self, conv1_width, conv2_width, conv3_width, conv4_width):
-        super(ResizeConvModel, self).__init__()
-        self.resize = torchvision.transforms.Resize((960, 580))
+        super(DeeperConvModel, self).__init__()
         self.conv1 = nn.Conv2d(1, conv1_width, kernel_size=7, stride=2)
         self.relu1 = nn.ReLU()
         self.maxpool1 = nn.MaxPool2d(kernel_size=2, stride=2)
@@ -84,24 +83,19 @@ class ResizeConvModel(nn.Module):
         self.fc = nn.Linear(conv4_width*13*7, 1)
 
     def forward(self, x):
-        print(x.shape)
         h = self.resize(x)
         h = self.conv1(h)
         h = self.relu1(h)
         h = self.maxpool1(h)
-        print(h.shape)
         h = self.conv2(h)
         h = self.relu2(h)
         h = self.maxpool2(h)
-        print(h.shape)
         h = self.conv3(h)
         h = self.relu3(h)
         h = self.maxpool3(h)
-        print(h.shape)
         h = self.conv4(h)
         h = self.relu4(h)
         h = self.maxpool4(h)
-        print(h.shape)
         
         h = h.view(h.shape[0], -1)
         h = self.fc(h)
@@ -114,9 +108,9 @@ if __name__=="__main__":
     args = parser.parse_args()
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = ResizeConvModel(10, 10, 10, 10)
+    model = DeeperConvModel(10, 10, 10, 10)
     model.to(device)
-    dataset = TWADataset(os.path.join(args.data_dir, "labels.csv"), os.path.join(args.data_dir, "images"), device)
+    dataset = TWADataset(os.path.join(args.data_dir, "labels.csv"), os.path.join(args.data_dir, "images"), device, (960, 580))
     image, label, filename = dataset[30000]
 
     model.eval()

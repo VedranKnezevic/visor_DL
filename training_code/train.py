@@ -13,7 +13,7 @@ import datetime
 import matplotlib.pyplot as plt
 import eval
 import argparse
-from models import ConvModel, LogitsConvModel, ResizeConvModel
+from models import ConvModel, LogitsConvModel, DeeperConvModel
 from pathlib import Path
 
 BASE_DIR = Path(__file__).parent.resolve()
@@ -129,17 +129,17 @@ if __name__=="__main__":
 
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = ResizeConvModel(64, 64, 64, 64)
+    model = DeeperConvModel(64, 64, 64, 64)
     model = model.to(device)
-    if model.__class__ == LogitsConvModel or model.__class__ == ResizeConvModel:
+    if model.__class__ == LogitsConvModel or model.__class__ == DeeperConvModel:
         criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([100], device=device))
     else:
         criterion = nn.BCELoss()
 
     
-    trainset = TWADataset(os.path.join(args.data_dir, "train", "labels.csv"), os.path.join(args.data_dir, "train", "images"), device)
-    valset = TWADataset(os.path.join(args.data_dir, "val", "labels.csv"), os.path.join(args.data_dir, "val", "images"), device)
-    testset = TWADataset(os.path.join(args.data_dir, "test", "labels.csv"), os.path.join(args.data_dir, "test", "images"), device)
+    trainset = TWADataset(os.path.join(args.data_dir, "train", "labels.csv"), os.path.join(args.data_dir, "train", "images"), device, (960, 580))
+    valset = TWADataset(os.path.join(args.data_dir, "val", "labels.csv"), os.path.join(args.data_dir, "val", "images"), device, (960, 580))
+    testset = TWADataset(os.path.join(args.data_dir, "test", "labels.csv"), os.path.join(args.data_dir, "test", "images"), device, (960, 580))
 
     train_dataloader = DataLoader(trainset, batch_size=16, shuffle=True)
     val_dataloader = DataLoader(valset, batch_size=16, shuffle=False)
