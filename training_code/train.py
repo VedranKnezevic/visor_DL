@@ -13,7 +13,7 @@ import datetime
 import matplotlib.pyplot as plt
 import eval
 import argparse
-from models import ConvModel, LogitsConvModel
+from models import ConvModel, LogitsConvModel, ResizeConvModel
 from pathlib import Path
 
 BASE_DIR = Path(__file__).parent.resolve()
@@ -129,10 +129,10 @@ if __name__=="__main__":
 
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = LogitsConvModel(64, 128, 128)
+    model = ResizeConvModel(64, 64, 64, 64)
     model = model.to(device)
-    if model.__class__ == LogitsConvModel:
-        criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([50], device=device))
+    if model.__class__ == LogitsConvModel or model.__class__ == ResizeConvModel:
+        criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([100], device=device))
     else:
         criterion = nn.BCELoss()
 
