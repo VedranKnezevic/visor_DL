@@ -29,5 +29,4 @@ if __name__=="__main__":
             resized_img = cv2.resize(img, target_size, interpolation=cv2.INTER_AREA)
             
             cv2.imwrite(img_path, resized_img)
-            exit()
 
