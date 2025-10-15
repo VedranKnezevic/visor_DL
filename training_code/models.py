@@ -109,7 +109,7 @@ if __name__=="__main__":
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = DeeperConvModel(10, 10, 10, 10)
     model.to(device)
-    dataset = TWADataset(os.path.join(args.data_dir, "labels.csv"), os.path.join(args.data_dir, "images"), device, (960, 580))
+    dataset = TWADataset(os.path.join(args.data_dir, "labels.csv"), os.path.join(args.data_dir, "images"), device)
     image, label, filename = dataset[30000]
 
     model.eval()
