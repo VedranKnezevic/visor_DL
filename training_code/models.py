@@ -18,7 +18,7 @@ class ConvModel(nn.Module):
         self.conv3 = nn.Conv2d(conv2_width, conv3_width, kernel_size=3)
         self.relu3 = nn.ReLU()
         self.maxpool3 = nn.MaxPool2d(kernel_size=2, stride=2)
-        self.fc = nn.Linear(conv3_width*28*55, 1)
+        self.fc = nn.Linear(conv3_width*16*28, 1)
 
     def forward(self, x):
         h = self.conv1(x)
@@ -47,7 +47,7 @@ class LogitsConvModel(nn.Module):
         self.conv3 = nn.Conv2d(conv2_width, conv3_width, kernel_size=3)
         self.relu3 = nn.ReLU()
         self.maxpool3 = nn.MaxPool2d(kernel_size=2, stride=2)
-        self.fc = nn.Linear(conv3_width*28*55, 1)
+        self.fc = nn.Linear(conv3_width*16*28, 1)
 
     def forward(self, x):
         h = self.conv1(x)
@@ -59,7 +59,6 @@ class LogitsConvModel(nn.Module):
         h = self.conv3(h)
         h = self.relu3(h)
         h = self.maxpool3(h)
-        print(h.shape)
         h = h.view(h.shape[0], -1)
         h = self.fc(h)
         return h.squeeze()
