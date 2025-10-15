@@ -129,7 +129,7 @@ if __name__=="__main__":
 
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = DeeperConvModel(64, 64, 64, 64)
+    model = LogitsConvModel(64, 64, 64)
     model = model.to(device)
     if model.__class__ == LogitsConvModel or model.__class__ == DeeperConvModel:
         criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([100], device=device))
