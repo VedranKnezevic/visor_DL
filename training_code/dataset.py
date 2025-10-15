@@ -1,7 +1,7 @@
 from torch.utils.data import Dataset
 import os
 import pandas as pd
-import cv2
+from torchvision.io import read_image, ImageReadMode
 import torch
 import random
 import matplotlib.pyplot as plt
@@ -18,7 +18,7 @@ class TWADataset(Dataset):
 
     def __getitem__(self, idx):
         img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
-        image = torch.tensor(cv2.imread(img_path, cv2.IMREAD_GRAYSCALE), dtype=torch.float32)
+        image = read_image(img_path, mode=ImageReadMode.GRAY)
         label = self.img_labels.iloc[idx, 1]
 
         return image.to(self.device).unsqueeze(0), torch.tensor(label, dtype=torch.float, device=self.device), self.img_labels.iloc[idx, 0]
