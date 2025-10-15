@@ -12,7 +12,6 @@ class TWADataset(Dataset):
         self.img_labels = pd.read_csv(annotations_file)
         self.img_dir = img_dir
         self.device = device
-        self.img_size = size
 
     def __len__(self):
         return len(self.img_labels)
