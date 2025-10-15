@@ -59,7 +59,7 @@ class LogitsConvModel(nn.Module):
         h = self.conv3(h)
         h = self.relu3(h)
         h = self.maxpool3(h)
-
+        print(h.shape)
         h = h.view(h.shape[0], -1)
         h = self.fc(h)
         return h.squeeze()
