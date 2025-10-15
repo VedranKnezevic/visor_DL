@@ -21,14 +21,14 @@ class TWADataset(Dataset):
         image = read_image(img_path, mode=ImageReadMode.GRAY).float() / 255.0
         label = self.img_labels.iloc[idx, 1]
 
-        return image.to(self.device).unsqueeze(0), torch.tensor(label, dtype=torch.float, device=self.device), self.img_labels.iloc[idx, 0]
+        return image.to(self.device), torch.tensor(label, dtype=torch.float, device=self.device), self.img_labels.iloc[idx, 0]
     
 
 if __name__=="__main__":
-    dataset = TWADataset("../data/labels.csv", "../data/images")
+    dataset = TWADataset("data/labels.csv", "data/images", "cpu")
 
     random_index = random.randint(0, len(dataset))
-    image, label = dataset[random_index]
+    image, label, _ = dataset[random_index]
     print(f"index: {random_index}")
     print(image.shape)
     if label:
@@ -36,6 +36,6 @@ if __name__=="__main__":
     else:
         print("pseudo-scrap")
     
-    plt.imshow(image, cmap="grey")
+    plt.imshow(image.squeeze(), cmap="grey")
     plt.show()
 
