@@ -1,7 +1,7 @@
 import cv2
 import os
 import argparse
-import tqdm
+from tqdm import tqdm
 
 
 if __name__=="__main__":
