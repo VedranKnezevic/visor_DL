@@ -151,7 +151,7 @@ if __name__=="__main__":
     with open(os.path.join(save_dir, f"exp{exp_num}_info.txt"), "a") as f:
         f.write(f"start: {datetime.datetime.now()}\n")
 
-    train(model, train_dataloader, val_dataloader, param_niter=20, save_dir=save_dir, exp_num=exp_num, criterion=criterion)
+    train(model, train_dataloader, val_dataloader, param_niter=4, save_dir=save_dir, exp_num=exp_num, criterion=criterion)
 
 
     eval.evaluate(model, trainset, valset, save_dir, exp_num, criterion)
