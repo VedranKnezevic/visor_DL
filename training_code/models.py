@@ -109,7 +109,7 @@ class ResNetBackbone(nn.Module):
     def forward(self, x):
         h = self.resnet(x)
         h = self.fc(h)
-        return h
+        return h.squeeze()
 
 
 
