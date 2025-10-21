@@ -35,7 +35,7 @@ class ResNetDataset(Dataset):
 
     def __getitem__(self, idx):
         img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
-        image = read_image(img_path)
+        image = read_image(img_path, mode=ImageReadMode.RGB)
         label = self.img_labels.iloc[idx, 1]
 
         return image.to(self.device), torch.tensor(label, dtype=torch.float, device=self.device), self.img_labels.iloc[idx, 0]
