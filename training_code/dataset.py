@@ -35,7 +35,7 @@ class ResNetDataset(Dataset):
 
     def __getitem__(self, idx):
         img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
-        img_gray = read_image(img_path)
+        img_gray = read_image(img_path, mode=ImageReadMode.GRAY).float() / 255.0
         img_rgb = img_gray.repeat(3, 1, 1)
         label = self.img_labels.iloc[idx, 1]
 
