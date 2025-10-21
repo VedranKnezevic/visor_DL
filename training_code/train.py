@@ -1,4 +1,4 @@
-from dataset import TWADataset
+from dataset import TWADataset, ResNetDataset
 import torch
 from torch import nn
 import torch.nn.functional as F
@@ -13,7 +13,7 @@ import datetime
 import matplotlib.pyplot as plt
 import eval
 import argparse
-from models import ConvModel, LogitsConvModel, DeeperConvModel
+from models import ConvModel, LogitsConvModel, DeeperConvModel, ResNetBackbone
 from pathlib import Path
 
 BASE_DIR = Path(__file__).parent.resolve()
@@ -129,17 +129,17 @@ if __name__=="__main__":
 
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = DeeperConvModel(64, 64, 64, 126)
+    model = ResNetBackbone(64, 64, 64, 126)
     model = model.to(device)
-    if model.__class__ == LogitsConvModel or model.__class__ == DeeperConvModel:
+    if not model.__class__ == ConvModel:
         criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([100], device=device))
     else:
         criterion = nn.BCELoss()
 
     
-    trainset = TWADataset(os.path.join(args.data_dir, "train", "labels.csv"), os.path.join(args.data_dir, "train", "images"), device)
-    valset = TWADataset(os.path.join(args.data_dir, "val", "labels.csv"), os.path.join(args.data_dir, "val", "images"), device)
-    testset = TWADataset(os.path.join(args.data_dir, "test", "labels.csv"), os.path.join(args.data_dir, "test", "images"), device)
+    trainset = ResNetDataset(os.path.join(args.data_dir, "train", "labels.csv"), os.path.join(args.data_dir, "train", "images"), device)
+    valset = ResNetDataset(os.path.join(args.data_dir, "val", "labels.csv"), os.path.join(args.data_dir, "val", "images"), device)
+    testset = ResNetDataset(os.path.join(args.data_dir, "test", "labels.csv"), os.path.join(args.data_dir, "test", "images"), device)
 
     train_dataloader = DataLoader(trainset, batch_size=12, shuffle=True)
     val_dataloader = DataLoader(valset, batch_size=12, shuffle=False)

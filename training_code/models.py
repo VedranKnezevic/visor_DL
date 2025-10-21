@@ -100,9 +100,9 @@ class DeeperConvModel(nn.Module):
         return h.squeeze()
     
 
-class ResnetBackbone(nn.Module):
+class ResNetBackbone(nn.Module):
     def __init__(self, *args, **kwargs):
-        super(ResnetBackbone, self).__init__(*args, **kwargs)
+        super(ResNetBackbone, self).__init__(*args, **kwargs)
         self.resnet = torchvision.models.resnet.resnet18(pretrained=True)
         self.fc = nn.Linear(1000, 1)
 
