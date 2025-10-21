@@ -24,6 +24,23 @@ class TWADataset(Dataset):
         return image.to(self.device), torch.tensor(label, dtype=torch.float, device=self.device), self.img_labels.iloc[idx, 0]
     
 
+class ResNetDataset(Dataset):
+    def __init__(self, annotations_file: str, img_dir: str, device):
+        self.img_labels = pd.read_csv(annotations_file)
+        self.img_dir = img_dir
+        self.device = device
+
+    def __len__(self):
+        return len(self.img_labels)
+
+    def __getitem__(self, idx):
+        img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
+        image = read_image(img_path)
+        label = self.img_labels.iloc[idx, 1]
+
+        return image.to(self.device), torch.tensor(label, dtype=torch.float, device=self.device), self.img_labels.iloc[idx, 0]
+
+
 if __name__=="__main__":
     dataset = TWADataset("data/labels.csv", "data/images", "cpu")
 

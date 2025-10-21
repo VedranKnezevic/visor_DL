@@ -100,6 +100,19 @@ class DeeperConvModel(nn.Module):
         return h.squeeze()
     
 
+class ResnetBackbone(nn.Module):
+    def __init__(self, *args, **kwargs):
+        super(ResnetBackbone, self).__init__(*args, **kwargs)
+        self.resnet = torchvision.models.resnet.resnet18(pretrained=True)
+        self.fc = nn.Linear(1000, 1)
+
+    def forward(self, x):
+        h = self.resnet(x)
+        h = self.fc(h)
+        return h
+
+
+
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description="Test out models")
     parser.add_argument("data_dir", help="Path to directory with images and labels")
