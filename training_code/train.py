@@ -129,7 +129,7 @@ if __name__=="__main__":
 
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = ResNetBackbone(64, 64, 64, 126)
+    model = ResNetBackbone()
     model = model.to(device)
     if not model.__class__ == ConvModel:
         criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([100], device=device))
